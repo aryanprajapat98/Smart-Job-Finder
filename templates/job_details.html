@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ job.title }} at {{ job.company.name }} - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="job-details-page">
+
+<!-- ============== DESKTOP VIEW ============== -->
+
+<!-- NAVBAR -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="{% if user %}/dashboard{% else %}/{% endif %}">Home</a>
+    <a href="/jobs/" class="active">Jobs</a>
+    <a href="/companies/">Companies</a>
+    <a href="/policy" class='policy'>Private Policy</a>
+  </nav>
+
+  {% if user %}
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-trigger" onclick="toggleUserMenu()">
+      <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+      <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+      <span class="caret">▼</span>
+    </div>
+    <div class="user-menu-dropdown">
+      <a href="/dashboard/">🏠 Dashboard</a>
+      <a href="/profile/">👤 My Profile</a>
+      {% if user.user_type == "employer" %}<a href="/post-job/">➕ Post a Job</a>{% endif %}
+      <div class="divider-line"></div>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <a href="/login/" class="login-btn">👤 Login / Sign Up</a>
+  {% endif %}
+</header>
+
+<!-- BREADCRUMB + TOP CARD -->
+<section class="job-detail-hero desktop-only">
+  <p class="job-detail-breadcrumb"><a href="/jobs/">Jobs</a> / {{ job.title }}</p>
+
+  <div class="job-detail-top-card">
+    <div class="job-detail-left">
+      <div class="job-detail-logo">{{ job.logo_emoji|default:"🟣" }}</div>
+      <div class="job-detail-title">
+        <h1>{{ job.title }}</h1>
+        <div class="company-line">
+          <a href="{% url 'company_detail' job.company.id %}">{{ job.company.name }}</a>
+          <span>⭐ {{ job.company.rating }}</span>
+        </div>
+        <div class="job-detail-meta-row">
+          <span class="job-meta-item">📍 {{ job.location }}</span>
+          <span class="job-meta-item">🕐 Posted {{ job.posted_ago }}</span>
+          <span class="job-meta-item">👥 {{ job.applicants_count|default:"0" }} applicants</span>
+        </div>
+        <div class="job-tags" style="margin-top:14px;">
+          <span class="job-tag type">{{ job.job_type }}</span>
+          <span class="job-tag">{{ job.experience_level }}</span>
+          {% for skill in job.skills %}
+          <span class="job-tag">{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="job-detail-actions">
+      <div class="job-detail-salary">{{ job.salary_range }}<span>/ {{ job.salary_period }}</span></div>
+      <div class="job-detail-btns">
+        {% if user %}
+          <form method="POST" action="{% url 'toggle_save_job' job.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="/jobs/{{ job.id }}/">
+            <button type="submit" class="job-save-btn {% if job.is_saved %}saved{% endif %}" style="width:44px;height:44px;">{% if job.is_saved %}❤️{% else %}🤍{% endif %}</button>
+          </form>
+          <form method="POST" action="{% url 'apply_job' job.id %}">
+            {% csrf_token %}
+            <button type="submit" class="job-apply-btn" style="padding:12px 26px;">{% if job.has_applied %}Applied ✓{% else %}Apply Now{% endif %}</button>
+          </form>
+
+          {% if job.posted_by == user %}
+          <form method="POST" action="{% url 'delete_job' job.id %}" onsubmit="return confirm('Are you sure you want to delete this job?');">
+            {% csrf_token %}
+            <button type="submit" class="btn-cancel" style="color:#e64980;border-color:#fcd6e3;">🗑️ Delete Job</button>
+          </form>
+          {% endif %}
+        {% else %}
+          <a href="/login/?next=/jobs/{{ job.id }}/" class="job-save-btn" style="width:44px;height:44px;">🤍</a>
+          <a href="/login/?next=/jobs/{{ job.id }}/" class="job-apply-btn" style="padding:12px 26px;">Apply Now</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BODY -->
+<section class="job-detail-body desktop-only">
+
+  <div>
+    <div class="job-detail-main-card">
+      <h3>Job Description</h3>
+      <p>{{ job.description|linebreaks }}</p>
+    </div>
+
+    <div class="job-detail-main-card">
+      <h3>Requirements</h3>
+      {% if job.requirements_list %}
+      <ul>
+        {% for req in job.requirements_list %}
+        <li>{{ req }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>{{ job.requirements|linebreaks }}</p>
+      {% endif %}
+    </div>
+
+    <div class="job-detail-main-card">
+      <h3>Key Skills</h3>
+      <div class="job-tags">
+        {% for skill in job.skills %}
+        <span class="job-tag">{{ skill }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <aside class="job-detail-sidebar">
+    <div class="dash-side-card">
+      <h4>About the Company</h4>
+      <div class="company-mini-row">
+        <div class="company-row-logo">{{ job.company.logo_emoji|default:"🟣" }}</div>
+        <div>
+          <h5>{{ job.company.name }}</h5>
+          <p>{{ job.company.industry }}</p>
+        </div>
+      </div>
+      <div class="company-mini-stats">
+        <span>📍 {{ job.company.location }}</span>
+        <span>👥 {{ job.company.size }} employees</span>
+        <span>⭐ {{ job.company.rating }} rating</span>
+        <span>💼 {{ job.company.open_jobs_count }} open jobs</span>
+      </div>
+      <a href="{% url 'company_detail' job.company.id %}" class="company-mini-view">View Company →</a>
+    </div>
+
+    <div class="dash-side-card">
+      <h4>Job Overview</h4>
+      <div class="app-status-row"><span>Job Type</span><span>{{ job.job_type }}</span></div>
+      <div class="app-status-row"><span>Experience</span><span>{{ job.experience_level }}</span></div>
+      <div class="app-status-row"><span>Location</span><span>{{ job.location }}</span></div>
+      <div class="app-status-row"><span>Deadline</span><span>{{ job.deadline|default:"Open" }}</span></div>
+    </div>
+  </aside>
+
+</section>
+
+
+<!-- ============== MOBILE VIEW ============== -->
+<div class="mobile-only m-job-detail-page">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <a href="/jobs/" style="font-size:20px;">←</a>
+    <h2 style="font-size:16px;font-weight:700;">Job Details</h2>
+  </div>
+
+  <div class="job-detail-top-card">
+    <div class="job-detail-left">
+      <div class="job-detail-logo">{{ job.logo_emoji|default:"🟣" }}</div>
+      <div class="job-detail-title">
+        <h1>{{ job.title }}</h1>
+        <div class="company-line">
+          <a href="{% url 'company_detail' job.company.id %}">{{ job.company.name }}</a>
+        </div>
+        <div class="job-detail-meta-row">
+          <span class="job-meta-item">📍 {{ job.location }}</span>
+          <span class="job-meta-item">🕐 {{ job.posted_ago }}</span>
+        </div>
+        <div class="job-tags" style="margin-top:10px;">
+          <span class="job-tag type">{{ job.job_type }}</span>
+          {% for skill in job.skills|slice:":3" %}
+          <span class="job-tag">{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="job-detail-actions">
+      <div class="job-detail-salary">{{ job.salary_range }}<span>/ {{ job.salary_period }}</span></div>
+      <div class="job-detail-btns">
+        {% if user %}
+          <form method="POST" action="{% url 'apply_job' job.id %}">
+            {% csrf_token %}
+            <button type="submit" class="job-apply-btn">{% if job.has_applied %}Applied ✓{% else %}Apply Now{% endif %}</button>
+          </form>
+          <form method="POST" action="{% url 'toggle_save_job' job.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="/jobs/{{ job.id }}/">
+            <button type="submit" class="job-save-btn {% if job.is_saved %}saved{% endif %}">{% if job.is_saved %}❤️ Saved{% else %}🤍 Save Job{% endif %}</button>
+          </form>
+        {% else %}
+          <a href="/login/?next=/jobs/{{ job.id }}/" class="job-apply-btn">Apply Now</a>
+          <a href="/login/?next=/jobs/{{ job.id }}/" class="job-save-btn">🤍 Save Job</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="job-detail-main-card">
+    <h3>Job Description</h3>
+    <p>{{ job.description|linebreaks }}</p>
+  </div>
+
+  <div class="job-detail-main-card">
+    <h3>Requirements</h3>
+    {% if job.requirements_list %}
+    <ul>
+      {% for req in job.requirements_list %}
+      <li>{{ req }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>{{ job.requirements|linebreaks }}</p>
+    {% endif %}
+  </div>
+
+  <div class="dash-side-card">
+    <h4>About the Company</h4>
+    <div class="company-mini-row">
+      <div class="company-row-logo">{{ job.company.logo_emoji|default:"🟣" }}</div>
+      <div>
+        <h5>{{ job.company.name }}</h5>
+        <p>{{ job.company.industry }}</p>
+      </div>
+    </div>
+    <a href="{% url 'company_detail' job.company.id %}" class="company-mini-view">View Company →</a>
+  </div>
+
+</div>
+
+<script>
+  function toggleUserMenu(id){
+    var menu = document.getElementById(id || 'userMenu');
+    menu.classList.toggle('open');
+    document.addEventListener('click', function closeMenu(e){
+      if(!menu.contains(e.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+</script>
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

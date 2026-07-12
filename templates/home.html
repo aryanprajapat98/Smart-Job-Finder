@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Job Finder - Find Better. Apply Smarter.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="/" class="active">Home</a>
+    <a href="/jobs" class='job-btn'>Jobs</a>
+    <a href="/companies" class= 'companies-btn'>Companies</a>
+    <a href="/policy" class='policy'>Private Policy</a>
+  </nav>
+
+  <a href="/login" class="login-btn">👤 Login / Sign Up</a>
+</header>
+
+
+<!-- HERO -->
+<section class="hero-section desktop-only">
+  <div class="hero-wrapper">
+
+    <!-- left text -->
+    <div class="hero-text" style="grid-column:1 / 2;">
+      <span class="badge">⭐ Your Dream Job is One Search Away</span>
+      <h2>Find Best Jobs<br>for Your <span class="accent">Future</span></h2>
+      <p>Discover verified job opportunities from top companies and accelerate your career growth.</p>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-icon purple">💼</div>
+          <div>
+            <div class="stat-num">10K+</div>
+            <div class="stat-label">Active Jobs</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon blue">🏢</div>
+          <div>
+            <div class="stat-num">2K+</div>
+            <div class="stat-label">Top Companies</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon green">👥</div>
+          <div>
+            <div class="stat-num">50K+</div>
+            <div class="stat-label">Happy Users</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-buttons">
+        <a href="/jobs" class="btn-primary">Explore Jobs →</a>
+        <a href="#" class="btn-secondary"> How it Works</a>
+      </div>
+    </div>
+
+    <!-- middle illustration -->
+    <div class="hero-illustration" style="grid-column:2 / 3;">
+      <div class="blob"></div>
+      <div class="dot-pattern"></div>
+      <div class="floating-circle"></div>
+      <div class="briefcase"></div>
+      <div class="doc-card">
+        <div class="doc-dots"><span></span><span></span><span></span></div>
+        <div class="doc-line"></div>
+        <div class="doc-line"></div>
+        <div class="doc-line short"></div>
+      </div>
+      <div class="magnifier"></div>
+    </div>
+
+    <!-- right login card -->
+    <div class="login-card" style="grid-column:3 / 4;">
+
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-danger" style="color:red;margin-bottom:14px;font-size:13px;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+        <h3>Welcome Back! 👋</h3>
+        <p class="sub">Login to your account</p>
+
+        <div class="input-group">
+          <span class="input-icon">✉️</span>
+          <input type="text" name="identifier" placeholder="Email or Phone Number" required>
+        </div>
+
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input type="password" name="password" placeholder="Password" required>
+          <span class="toggle-eye">🙈</span>
+        </div>
+
+        <div class="login-row">
+          <label class="remember"><input type="checkbox" name="remember"> Remember me</label>
+          <a href="{% url 'forgot_password' %}" class="forgot">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="login-submit">Login</button>
+
+        <div class="divider">or</div>
+
+        <a href="{% url 'google_login' %}" class="google-btn" style="text-decoration:none;">🇬 Continue with Google</a>
+
+        <p class="signup-text">New here? <a href="{% url 'login' %}?tab=signup">Create New Account</a></p>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section desktop-only">
+  <div class="eyebrow">WHY CHOOSE US</div>
+  <h2>Everything You Need to <span class="accent">Get Hired</span></h2>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon purple">⚡</div>
+      <h3>Smart Search</h3>
+      <p>Find relevant jobs quickly with our smart filters and advanced search.</p>
+      <div class="feature-bar purple"></div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon green">🛡️</div>
+      <h3>Verified Jobs</h3>
+      <p>All jobs are verified and updated regularly so you never miss real opportunities.</p>
+      <div class="feature-bar green"></div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon orange">🔔</div>
+      <h3>Instant Alerts</h3>
+      <p>Get notified about new jobs matching your preferences instantly.</p>
+      <div class="feature-bar orange"></div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon blue">📈</div>
+      <h3>Track Applications</h3>
+      <p>Track and manage all your job applications in one place with ease.</p>
+      <div class="feature-bar blue"></div>
+    </div>
+  </div>
+</section>
+
+<!-- BOTTOM WAVE -->
+<div class="bottom-wave desktop-only">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path d="M0,40 C360,120 1080,0 1440,60 L1440,120 L0,120 Z" fill="#e3ddf7"></path>
+  </svg>
+</div>
+
+
+<!-- ===== MOBILE HOME (real, working navigation) ===== -->
+<div class="mobile-only m-jobs-page">
+
+  <div class="m-jobs-top" style="justify-content:space-between;">
+    <div class="logo">
+      <div class="logo-icon" style="width:36px;height:36px;font-size:15px;border-radius:9px;">💼</div>
+      <div class="logo-text">
+        <h1 style="font-size:14.5px;">Smart <span style="color:var(--indigo-600);">Job Finder</span></h1>
+      </div>
+    </div>
+    <a href="/login/" class="login-btn" style="padding:8px 14px;font-size:12.5px;">👤 Login</a>
+  </div>
+
+  <span class="m-badge" style="margin-top:20px;">⭐ Your Dream Job is One Search Away</span>
+
+  <h2 class="m-headline">Find Best Jobs<br>for Your <span class="accent">Future</span></h2>
+  <p class="m-sub">Discover verified job opportunities from top companies and accelerate your career growth.</p>
+
+  <div class="m-stats">
+    <div class="m-stat-card">
+      <div class="ic" style="background:#ece7fc;color:var(--purple-600);">💼</div>
+      <div class="num">10K+</div>
+      <div class="lbl">Active Jobs</div>
+    </div>
+    <div class="m-stat-card">
+      <div class="ic" style="background:#dbeafe;color:var(--blue);">🏢</div>
+      <div class="num">2K+</div>
+      <div class="lbl">Top Companies</div>
+    </div>
+    <div class="m-stat-card">
+      <div class="ic" style="background:#dcfce7;color:var(--green);">👥</div>
+      <div class="num">50K+</div>
+      <div class="lbl">Happy Users</div>
+    </div>
+  </div>
+
+  <div class="m-cta-stack">
+    <a href="/jobs/" class="m-btn-primary">🔍 Explore Jobs →</a>
+    <a href="/companies/" class="m-btn-secondary">🏢 Browse Companies</a>
+    <a href="/login/" class="m-btn-secondary">👤 Login / Create Account</a>
+  </div>
+
+  <div style="margin-top:34px;">
+    <p class="m-jobs-count" style="text-align:center;margin-bottom:16px;">Why Choose Us</p>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="m-stat-card" style="text-align:left;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:20px;">⚡</span>
+        <div><b style="font-size:13px;">Smart Search</b><p class="lbl" style="margin-top:2px;">Find relevant jobs with smart filters</p></div>
+      </div>
+      <div class="m-stat-card" style="text-align:left;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:20px;">🛡️</span>
+        <div><b style="font-size:13px;">Verified Jobs</b><p class="lbl" style="margin-top:2px;">All jobs verified & updated regularly</p></div>
+      </div>
+      <div class="m-stat-card" style="text-align:left;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:20px;">🔔</span>
+        <div><b style="font-size:13px;">Instant Alerts</b><p class="lbl" style="margin-top:2px;">Get notified about matching jobs</p></div>
+      </div>
+      <div class="m-stat-card" style="text-align:left;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:20px;">📈</span>
+        <div><b style="font-size:13px;">Track Applications</b><p class="lbl" style="margin-top:2px;">Manage all applications in one place</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

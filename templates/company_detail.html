@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ company.name }} - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="companies-page">
+
+<!-- ============== DESKTOP VIEW ============== -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="/">Home</a>
+    <a href="/jobs/">Jobs</a>
+    <a href="/companies/" class="active">Companies</a>
+    <a href="/policy/" class='policy'>Private Policy</a>
+  </nav>
+
+  {% if user %}
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-trigger" onclick="toggleUserMenu()">
+      <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+      <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+      <span class="caret">▼</span>
+    </div>
+    <div class="user-menu-dropdown">
+      <a href="/dashboard/">🏠 Dashboard</a>
+      <a href="/profile/">👤 My Profile</a>
+      {% if user.user_type == "employer" %}<a href="/post-job/">➕ Post a Job</a>{% endif %}
+      <div class="divider-line"></div>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <a href="/login/" class="login-btn">👤 Login / Sign Up</a>
+  {% endif %}
+</header>
+
+<!-- COMPANY HERO -->
+<section class="companies-hero desktop-only">
+  <p class="job-detail-breadcrumb"><a href="/companies/">Companies</a> / {{ company.name }}</p>
+
+  <div class="job-detail-top-card" style="margin-top:14px;">
+    <div class="job-detail-left">
+      <div class="job-detail-logo">{{ company.logo_emoji }}</div>
+      <div class="job-detail-title">
+        <h1>{{ company.name }}</h1>
+        <div class="company-line">
+          <span>{{ company.industry }}</span>
+          <span>⭐ {{ company.rating }}</span>
+        </div>
+        <p style="margin-top:10px;font-size:14px;color:var(--text-gray);max-width:520px;">{{ company.tagline }}</p>
+        <div class="job-detail-meta-row">
+          <span class="job-meta-item">📍 {{ company.location }}</span>
+          <span class="job-meta-item">👥 {{ company.size }} employees</span>
+          {% if company.website %}<span class="job-meta-item">🔗 <a href="{{ company.website }}" target="_blank" style="color:var(--indigo-600);">{{ company.website }}</a></span>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="job-detail-actions">
+      <span class="company-jobs-badge">{{ jobs_count }} Open Job{{ jobs_count|pluralize }}</span>
+    </div>
+  </div>
+</section>
+
+<!-- COMPANY'S JOBS -->
+<section class="companies-body desktop-only">
+  <div class="companies-list-meta">
+    <span>Open positions at <b>{{ company.name }}</b></span>
+  </div>
+
+  {% if jobs %}
+  <div class="jobs-grid">
+    {% for job in jobs %}
+    <div class="job-card">
+      <div class="job-card-top">
+        <div class="job-card-left">
+          <div class="job-logo">{{ job.logo_emoji }}</div>
+          <div class="job-info">
+            <h3>{{ job.title }}</h3>
+            <p class="company-name">{{ job.location }}</p>
+            <div class="job-meta-row">
+              <span class="job-meta-item">🕐 Posted {{ job.posted_ago }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="job-tags">
+        <span class="job-tag type">{{ job.job_type }}</span>
+        {% for skill in job.skills|slice:":3" %}
+        <span class="job-tag">{{ skill }}</span>
+        {% endfor %}
+      </div>
+      <div class="job-card-bottom">
+        <div class="job-salary">{{ job.salary_range }} <span>/ {{ job.salary_period }}</span></div>
+        <a href="/jobs/{{ job.id }}/" class="job-apply-btn">{% if job.has_applied %}Applied ✓{% else %}View & Apply{% endif %}</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="dash-empty">No open jobs at this company right now.</div>
+  {% endif %}
+</section>
+
+
+<!-- ============== MOBILE VIEW ============== -->
+<div class="mobile-only m-companies-page">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <a href="/companies/" style="font-size:20px;">←</a>
+    <h2 style="font-size:16px;font-weight:700;">{{ company.name }}</h2>
+  </div>
+
+  <div class="m-company-card">
+    <div class="m-company-top-row">
+      <div class="m-company-logo">{{ company.logo_emoji }}</div>
+      <div class="m-company-info">
+        <h3>{{ company.name }}</h3>
+        <p class="tagline">{{ company.tagline }}</p>
+      </div>
+      <span class="m-company-rating">⭐ {{ company.rating }}</span>
+    </div>
+    <div class="m-company-meta">
+      <span class="m-company-meta-item">🏷️ {{ company.industry }}</span>
+      <span class="m-company-meta-item">📍 {{ company.location }}</span>
+      <span class="m-company-meta-item">👥 {{ company.size }}</span>
+    </div>
+    <div class="m-company-bottom">
+      <span class="m-company-jobs-badge">{{ jobs_count }} Open Job{{ jobs_count|pluralize }}</span>
+    </div>
+  </div>
+
+  <p class="m-companies-count">Open Positions</p>
+
+  {% for job in jobs %}
+  <div class="m-job-card">
+    <div class="job-card-top">
+      <div class="job-card-left">
+        <div class="job-logo">{{ job.logo_emoji }}</div>
+        <div class="job-info">
+          <h3>{{ job.title }}</h3>
+          <p class="company-name">{{ job.location }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="job-card-bottom">
+      <div class="job-salary">{{ job.salary_range }}</div>
+      <a href="/jobs/{{ job.id }}/" class="job-apply-btn">{% if job.has_applied %}Applied ✓{% else %}View{% endif %}</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="dash-empty">No open jobs right now.</div>
+  {% endfor %}
+
+</div>
+
+<script>
+  function toggleUserMenu(){
+    var menu = document.getElementById('userMenu');
+    menu.classList.toggle('open');
+    document.addEventListener('click', function closeMenu(e){
+      if(!menu.contains(e.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+</script>
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

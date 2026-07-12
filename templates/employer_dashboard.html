@@ -1,0 +1,259 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employer Dashboard - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="dashboard-page">
+
+<!-- ============== DESKTOP VIEW ============== -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="/" class="active">Home</a>
+    <a href="/jobs/">Jobs</a>
+    <a href="/companies/">Companies</a>
+    <a href="/policy/" class='policy'>Private Policy</a>
+  </nav>
+
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-trigger" onclick="toggleUserMenu()">
+      <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+      <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+      <span class="caret">▼</span>
+    </div>
+    <div class="user-menu-dropdown">
+      <a href="/dashboard/">🏠 Dashboard</a>
+      <a href="/profile/">👤 My Profile</a>
+      <a href="/post-job/">➕ Post a Job</a>
+      <div class="divider-line"></div>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+      </form>
+    </div>
+  </div>
+</header>
+
+<section class="dash-hero desktop-only">
+  <p class="eyebrow-line">Employer Dashboard 🏢</p>
+  <h2>Welcome, <span>{{ user.first_name }}</span> — manage your job postings</h2>
+</section>
+
+<section class="dash-stats-grid desktop-only">
+  <div class="dash-stat-card">
+    <div class="stat-icon purple">💼</div>
+    <div>
+      <div class="stat-num">{{ posted_jobs_count }}</div>
+      <div class="stat-label">Jobs Posted</div>
+    </div>
+  </div>
+  <div class="dash-stat-card">
+    <div class="stat-icon blue">📄</div>
+    <div>
+      <div class="stat-num">{{ total_applicants_count }}</div>
+      <div class="stat-label">Total Applicants</div>
+    </div>
+  </div>
+  <div class="dash-stat-card">
+    <div class="stat-icon green">🏢</div>
+    <div>
+      <div class="stat-num">{{ companies_count }}</div>
+      <div class="stat-label">Companies Added</div>
+    </div>
+  </div>
+</section>
+
+<section class="dash-quick-actions desktop-only">
+  <div class="dash-section-title">
+    <h3>Quick Actions</h3>
+  </div>
+  <div class="quick-actions-grid">
+    <a href="/post-job/" style="color:inherit;">
+      <div class="action-card">
+        <div class="action-icon">➕</div>
+        <h4>Post a New Job</h4>
+        <p>Add a job opening</p>
+      </div>
+    </a>
+    <a href="/companies/" style="color:inherit;">
+      <div class="action-card">
+        <div class="action-icon">🏢</div>
+        <h4>Browse Companies</h4>
+        <p>See all listed companies</p>
+      </div>
+    </a>
+    <a href="/profile/" style="color:inherit;">
+      <div class="action-card">
+        <div class="action-icon">✏️</div>
+        <h4>Edit Profile</h4>
+        <p>Update your details</p>
+      </div>
+    </a>
+  </div>
+</section>
+
+<section class="dash-quick-actions desktop-only" style="padding-bottom:90px;">
+  <div class="dash-section-title">
+    <h3>Your Posted Jobs</h3>
+  </div>
+
+  {% if posted_jobs %}
+  <div class="jobs-grid">
+    {% for job in posted_jobs %}
+    <div class="job-card">
+      <div class="job-card-top">
+        <div class="job-card-left">
+          <div class="job-logo">{{ job.logo_emoji }}</div>
+          <div class="job-info">
+            <h3>{{ job.title }}</h3>
+            <p class="company-name">{{ job.company.name }}</p>
+            <div class="job-meta-row">
+              <span class="job-meta-item">📍 {{ job.location }}</span>
+              <span class="job-meta-item">🕐 Posted {{ job.posted_ago }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="job-tags">
+        <span class="job-tag type">{{ job.job_type }}</span>
+        <span class="job-tag">{{ job.applicants_count }} applicant{{ job.applicants_count|pluralize }}</span>
+      </div>
+      <div class="job-card-bottom">
+        <div class="job-salary">{{ job.salary_range }}</div>
+        <div style="display:flex;gap:10px;">
+          <a href="{% url 'job_applicants' job.id %}" class="job-apply-btn">View Applicants</a>
+          <form method="POST" action="{% url 'delete_job' job.id %}" onsubmit="return confirm('Delete this job?');">
+            {% csrf_token %}
+            <button type="submit" class="job-save-btn" style="color:#e64980;border-color:#fcd6e3;">🗑️</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="dash-empty">
+    <div class="action-icon">💼</div>
+    <p>You haven't posted any jobs yet. <a href="/post-job/" style="color:var(--indigo-600);font-weight:600;">Post your first job →</a></p>
+  </div>
+  {% endif %}
+</section>
+
+
+<!-- ============== MOBILE VIEW ============== -->
+<div class="mobile-only m-dashboard-page">
+
+  <div class="m-jobs-top" style="justify-content:space-between;">
+    <div class="logo">
+      <div class="logo-icon" style="width:36px;height:36px;font-size:15px;border-radius:9px;">💼</div>
+    </div>
+    <div class="user-menu" id="userMenuMobile">
+      <div class="user-menu-trigger" onclick="toggleUserMenu('userMenuMobile')" style="padding:6px 10px 6px 6px;">
+        <div class="user-avatar" style="width:30px;height:30px;font-size:12px;">{{ user.first_name|slice:":1"|upper }}</div>
+        <span class="caret">▼</span>
+      </div>
+      <div class="user-menu-dropdown">
+        <a href="/dashboard/">🏠 Dashboard</a>
+        <a href="/profile/">👤 My Profile</a>
+        <a href="/post-job/">➕ Post a Job</a>
+        <div class="divider-line"></div>
+        <form method="POST" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="m-dash-welcome">
+    <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+    <div>
+      <h2>Hi, {{ user.first_name }} 🏢</h2>
+      <p>Manage your job postings</p>
+    </div>
+  </div>
+
+  <div class="m-dash-stats">
+    <div class="dash-stat-card">
+      <div class="stat-icon purple">💼</div>
+      <div>
+        <div class="stat-num">{{ posted_jobs_count }}</div>
+        <div class="stat-label">Jobs Posted</div>
+      </div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="stat-icon blue">📄</div>
+      <div>
+        <div class="stat-num">{{ total_applicants_count }}</div>
+        <div class="stat-label">Applicants</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="m-quick-actions">
+    <a href="/post-job/" style="color:inherit;">
+      <div class="action-card"><div class="action-icon">➕</div><h4>Post Job</h4></div>
+    </a>
+    <a href="/profile/" style="color:inherit;">
+      <div class="action-card"><div class="action-icon">✏️</div><h4>Edit Profile</h4></div>
+    </a>
+  </div>
+
+  <p class="m-companies-count" style="margin-bottom:4px;">Your Posted Jobs</p>
+
+  {% for job in posted_jobs %}
+  <div class="m-job-card">
+    <div class="job-card-top">
+      <div class="job-card-left">
+        <div class="job-logo">{{ job.logo_emoji }}</div>
+        <div class="job-info">
+          <h3>{{ job.title }}</h3>
+          <p class="company-name">{{ job.company.name }}</p>
+          <div class="job-meta-row">
+            <span class="job-meta-item">👥 {{ job.applicants_count }} applicant{{ job.applicants_count|pluralize }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="job-card-bottom">
+      <a href="{% url 'job_applicants' job.id %}" class="job-apply-btn">View Applicants</a>
+      <form method="POST" action="{% url 'delete_job' job.id %}" onsubmit="return confirm('Delete this job?');">
+        {% csrf_token %}
+        <button type="submit" class="job-save-btn" style="color:#e64980;border-color:#fcd6e3;">🗑️</button>
+      </form>
+    </div>
+  </div>
+  {% empty %}
+  <div class="dash-empty">You haven't posted any jobs yet.</div>
+  {% endfor %}
+
+</div>
+
+<script>
+  function toggleUserMenu(id){
+    var menu = document.getElementById(id || 'userMenu');
+    menu.classList.toggle('open');
+    document.addEventListener('click', function closeMenu(e){
+      if(!menu.contains(e.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+</script>
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

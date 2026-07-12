@@ -1,0 +1,250 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobs - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="jobs-page">
+
+<!-- ============== DESKTOP VIEW ============== -->
+
+<!-- NAVBAR -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="/">Home</a>
+    <a href="/jobs/" class="active">Jobs</a>
+    <a href="/companies/">Companies</a>
+    <a href="/policy/" class='policy'>Private Policy</a>
+  </nav>
+
+  {% if user %}
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-trigger" onclick="toggleUserMenu()">
+      <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+      <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+      <span class="caret">▼</span>
+    </div>
+    <div class="user-menu-dropdown">
+      <a href="/dashboard/">🏠 Dashboard</a>
+      <a href="/profile/">👤 My Profile</a>
+      <a href="/post-job/">➕ Post a Job</a>
+      <div class="divider-line"></div>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <a href="/login/" class="login-btn">👤 Login / Sign Up</a>
+  {% endif %}
+</header>
+
+<!-- JOBS HERO / SEARCH -->
+<section class="jobs-hero desktop-only">
+  <h2>Find your next <span class="accent">opportunity</span></h2>
+  <p>Browse through verified job listings from top companies. No login needed to explore.</p>
+
+  <form class="jobs-search-bar" method="GET" action="{% url 'jobs' %}">
+    <div class="jobs-search-input">
+      <span class="ic">🔍</span>
+      <input type="text" name="q" value="{{ query }}" placeholder="Job title, keyword, or company">
+    </div>
+    <div class="jobs-search-input" style="max-width:260px;">
+      <span class="ic">📍</span>
+      <input type="text" name="location" value="{{ location }}" placeholder="Location">
+    </div>
+    <button type="submit" class="jobs-filter-btn">🔎 Search Jobs</button>
+  </form>
+</section>
+
+<!-- JOBS BODY -->
+<section class="jobs-body desktop-only">
+
+  <!-- SIDEBAR FILTERS -->
+  <aside class="filter-sidebar">
+    <h3>Filter Jobs</h3>
+
+    <div class="filter-group">
+      <h4>Job Type</h4>
+      <label class="filter-option"><input type="checkbox"> Full-time</label>
+      <label class="filter-option"><input type="checkbox"> Part-time</label>
+      <label class="filter-option"><input type="checkbox"> Remote</label>
+      <label class="filter-option"><input type="checkbox"> Internship</label>
+    </div>
+
+    <div class="filter-group">
+      <h4>Experience Level</h4>
+      <label class="filter-option"><input type="checkbox"> Fresher</label>
+      <label class="filter-option"><input type="checkbox"> 1-3 years</label>
+      <label class="filter-option"><input type="checkbox"> 3-5 years</label>
+      <label class="filter-option"><input type="checkbox"> 5+ years</label>
+    </div>
+
+    <div class="filter-group">
+      <h4>Salary Range</h4>
+      <label class="filter-option"><input type="checkbox"> ₹0 - ₹5 LPA</label>
+      <label class="filter-option"><input type="checkbox"> ₹5 - ₹10 LPA</label>
+      <label class="filter-option"><input type="checkbox"> ₹10 - ₹20 LPA</label>
+      <label class="filter-option"><input type="checkbox"> ₹20 LPA+</label>
+    </div>
+
+    <a href="{% url 'jobs' %}" class="filter-clear" style="display:block;text-align:center;">Clear All Filters</a>
+  </aside>
+
+  <!-- JOB LISTINGS -->
+  <div class="jobs-list-wrap">
+
+    <div class="jobs-list-meta">
+      <span>Showing <b>{{ jobs_count }}</b> jobs</span>
+      <div class="jobs-sort">
+        <select>
+          <option>Most Recent</option>
+          <option>Salary: High to Low</option>
+          <option>Salary: Low to High</option>
+        </select>
+      </div>
+    </div>
+
+    {% if jobs %}
+    <div class="jobs-grid">
+      {% for job in jobs %}
+      <div class="job-card">
+        <div class="job-card-top">
+          <div class="job-card-left">
+            <div class="job-logo">{{ job.logo_emoji }}</div>
+            <div class="job-info">
+              <h3>{{ job.title }}</h3>
+              <p class="company-name">{{ job.company.name }}</p>
+              <div class="job-meta-row">
+                <span class="job-meta-item">📍 {{ job.location }}</span>
+                <span class="job-meta-item">🕐 Posted {{ job.posted_ago }}</span>
+              </div>
+            </div>
+          </div>
+          {% if user %}
+          <form method="POST" action="{% url 'toggle_save_job' job.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'jobs' %}">
+            <button type="submit" class="job-save-btn {% if job.is_saved %}saved{% endif %}">{% if job.is_saved %}❤️{% else %}🤍{% endif %}</button>
+          </form>
+          {% else %}
+          <a href="/login/" class="job-save-btn">🤍</a>
+          {% endif %}
+        </div>
+
+        <div class="job-tags">
+          <span class="job-tag type">{{ job.job_type }}</span>
+          {% for skill in job.skills|slice:":3" %}
+          <span class="job-tag">{{ skill }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="job-card-bottom">
+          <div class="job-salary">{{ job.salary_range }} <span>/ {{ job.salary_period }}</span></div>
+          <a href="/jobs/{{ job.id }}/" class="job-apply-btn">{% if job.has_applied %}Applied ✓{% else %}View & Apply{% endif %}</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="dash-empty">No jobs found. Try a different search.</div>
+    {% endif %}
+
+    <!-- PAGINATION -->
+    <div class="jobs-pagination">
+      <button>←</button>
+      <button class="active">1</button>
+      <button>→</button>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ============== MOBILE VIEW ============== -->
+<div class="mobile-only m-jobs-page">
+
+  <div class="m-jobs-top">
+    <div class="logo">
+      <div class="logo-icon" style="width:36px;height:36px;font-size:15px;border-radius:9px;">💼</div>
+    </div>
+    <h2>Find Jobs</h2>
+  </div>
+
+  <form class="m-jobs-search" method="GET" action="{% url 'jobs' %}">
+    <span class="ic">🔍</span>
+    <input type="text" name="q" value="{{ query }}" placeholder="Search jobs, companies...">
+  </form>
+
+  <p class="m-jobs-count">Showing {{ jobs_count }} jobs</p>
+
+  {% for job in jobs %}
+  <div class="m-job-card">
+    <div class="job-card-top">
+      <div class="job-card-left">
+        <div class="job-logo">{{ job.logo_emoji }}</div>
+        <div class="job-info">
+          <h3>{{ job.title }}</h3>
+          <p class="company-name">{{ job.company.name }}</p>
+          <div class="job-meta-row">
+            <span class="job-meta-item">📍 {{ job.location }}</span>
+            <span class="job-meta-item">🕐 {{ job.posted_ago }}</span>
+          </div>
+        </div>
+      </div>
+      {% if user %}
+      <form method="POST" action="{% url 'toggle_save_job' job.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'jobs' %}">
+        <button type="submit" class="job-save-btn {% if job.is_saved %}saved{% endif %}">{% if job.is_saved %}❤️{% else %}🤍{% endif %}</button>
+      </form>
+      {% else %}
+      <a href="/login/" class="job-save-btn">🤍</a>
+      {% endif %}
+    </div>
+    <div class="job-tags">
+      <span class="job-tag type">{{ job.job_type }}</span>
+      {% for skill in job.skills|slice:":2" %}
+      <span class="job-tag">{{ skill }}</span>
+      {% endfor %}
+    </div>
+    <div class="job-card-bottom">
+      <div class="job-salary">{{ job.salary_range }}</div>
+      <a href="/jobs/{{ job.id }}/" class="job-apply-btn">{% if job.has_applied %}Applied ✓{% else %}View{% endif %}</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="dash-empty">No jobs found.</div>
+  {% endfor %}
+
+</div>
+
+<script>
+  function toggleUserMenu(){
+    var menu = document.getElementById('userMenu');
+    menu.classList.toggle('open');
+    document.addEventListener('click', function closeMenu(e){
+      if(!menu.contains(e.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+</script>
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

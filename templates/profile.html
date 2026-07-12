@@ -1,0 +1,389 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="profile-page">
+
+<!-- ============== DESKTOP VIEW ============== -->
+
+<!-- NAVBAR -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="/dashboard/">Home</a>
+    <a href="/jobs/">Jobs</a>
+    <a href="/companies/">Companies</a>
+    <a href="/policy" class='policy'>Private Policy</a>
+  </nav>
+
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-trigger" onclick="toggleUserMenu()">
+      <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+      <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+      <span class="caret">▼</span>
+    </div>
+    <div class="user-menu-dropdown">
+      <a href="/dashboard/">🏠 Dashboard</a>
+      <a href="/profile/">👤 My Profile</a>
+      <a href="/post-job/">➕ Post a Job</a>
+      <div class="divider-line"></div>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+      </form>
+    </div>
+  </div>
+</header>
+
+<!-- PROFILE COVER -->
+<section class="profile-hero desktop-only">
+  <div class="profile-cover-card">
+    <div class="profile-avatar-lg">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+    <div class="profile-cover-text">
+      <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+      <p>{{ user.email }} · {{ user.phone|default:"Add phone number" }}</p>
+      <div class="profile-tags">
+        <span>📄 {{ applications_count|default:"0" }} Applications</span>
+        <span>🤍 {{ saved_jobs_count|default:"0" }} Saved Jobs</span>
+        <span>{{ profile_completion|default:"40" }}% Profile Complete</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-danger" style="color:red;max-width:1100px;margin:16px auto 0;padding:0 70px;">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<!-- PROFILE BODY -->
+<section class="profile-body desktop-only">
+
+  <!-- SIDE NAV -->
+  <nav class="profile-nav">
+    <a href="#personal" class="active" onclick="switchProfileTab(event,'personal')">👤 Personal Info</a>
+    <a href="#resume" onclick="switchProfileTab(event,'resume')">📎 Resume</a>
+    <a href="#applications" onclick="switchProfileTab(event,'applications')">📄 My Applications</a>
+    <a href="#saved" onclick="switchProfileTab(event,'saved')">🤍 Saved Jobs</a>
+    <a href="#security" onclick="switchProfileTab(event,'security')">🔒 Security</a>
+  </nav>
+
+  <div>
+    <!-- PERSONAL INFO PANEL -->
+    <div class="profile-panel" id="panel-personal">
+      <h3>Personal Information</h3>
+      <form method="POST" action="{% url 'update_profile' %}">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" name="first_name" value="{{ user.first_name }}" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" name="last_name" value="{{ user.last_name }}" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="text" name="email" value="{{ user.email }}" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" value="{{ user.phone }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" name="location" value="{{ user.location }}" placeholder="e.g. Jaipur, Rajasthan">
+        </div>
+        <div class="form-group">
+          <label>Current Job Title <span class="optional">(optional)</span></label>
+          <input type="text" name="headline" value="{{ user.headline }}" placeholder="e.g. Frontend Developer">
+        </div>
+        <div class="form-group">
+          <label>Key Skills</label>
+          <input type="text" name="skills" value="{{ user.skills }}" placeholder="e.g. React, Python, SQL (comma separated)">
+        </div>
+        <div class="form-group">
+          <label>About Me</label>
+          <textarea name="bio" placeholder="A short summary about your experience and goals">{{ user.bio }}</textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit-wide">Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- RESUME PANEL -->
+    <div class="profile-panel" id="panel-resume" style="display:none;">
+      <h3>Resume</h3>
+      <form method="POST" action="{% url 'upload_resume' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="resume-upload-box">
+          <div class="upload-icon">📎</div>
+          {% if resume %}
+            <p>Current resume: <b>{{ resume.file.name }}</b> — <a href="{{ resume.file.url }}" target="_blank" style="color:var(--indigo-600);font-weight:600;">View</a></p>
+          {% else %}
+            <p>No resume uploaded yet. Recruiters are 3x more likely to respond with a resume attached.</p>
+          {% endif %}
+          <input type="file" name="resume" accept=".pdf,.doc,.docx">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit-wide">Upload Resume</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- APPLICATIONS PANEL -->
+    <div class="profile-panel" id="panel-applications" style="display:none;">
+      <h3>My Applications</h3>
+      {% if applications %}
+        {% for app in applications %}
+        <div class="applications-table-row">
+          <div class="app-info">
+            <div class="job-logo">{{ app.job.logo_emoji|default:"🟣" }}</div>
+            <div>
+              <h5>{{ app.job.title }}</h5>
+              <p>{{ app.job.company.name }} · Applied {{ app.applied_ago }}</p>
+            </div>
+          </div>
+          <span class="app-status-badge {{ app.status_class }}">{{ app.status }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="font-size:14px;color:var(--text-gray);">You haven't applied to any jobs yet. <a href="/jobs/" style="color:var(--indigo-600);font-weight:600;">Browse jobs →</a></p>
+      {% endif %}
+    </div>
+
+    <!-- SAVED JOBS PANEL -->
+    <div class="profile-panel" id="panel-saved" style="display:none;">
+      <h3>Saved Jobs</h3>
+      {% if saved_jobs %}
+        {% for job in saved_jobs %}
+        <div class="applications-table-row">
+          <div class="app-info">
+            <div class="job-logo">{{ job.logo_emoji|default:"🟣" }}</div>
+            <div>
+              <h5>{{ job.title }}</h5>
+              <p>{{ job.company.name }} · {{ job.location }}</p>
+            </div>
+          </div>
+          <a href="/jobs/{{ job.id }}/" class="job-apply-btn">View</a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="font-size:14px;color:var(--text-gray);">No saved jobs yet. Tap 🤍 on any job to save it here.</p>
+      {% endif %}
+    </div>
+
+    <!-- SECURITY PANEL -->
+    <div class="profile-panel" id="panel-security" style="display:none;">
+      <h3>Change Password</h3>
+      <form method="POST" action="{% url 'change_password' %}">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Current Password</label>
+          <input type="password" name="current_password" required>
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" name="new_password" required>
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" name="confirm_password" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit-wide">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ============== MOBILE VIEW ============== -->
+<div class="mobile-only m-profile-page">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <a href="/dashboard/" style="font-size:20px;">←</a>
+    <h2 style="font-size:16px;font-weight:700;">My Profile</h2>
+  </div>
+
+  <div class="profile-cover-card">
+    <div class="profile-avatar-lg">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+    <div class="profile-cover-text">
+      <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+      <p>{{ user.email }}</p>
+      <div class="profile-tags">
+        <span>📄 {{ applications_count|default:"0" }}</span>
+        <span>🤍 {{ saved_jobs_count|default:"0" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="profile-nav" style="margin-top:18px;">
+    <a href="#personal" class="active" onclick="switchProfileTab(event,'personal')">👤 Info</a>
+    <a href="#resume" onclick="switchProfileTab(event,'resume')">📎 Resume</a>
+    <a href="#applications" onclick="switchProfileTab(event,'applications')">📄 Applications</a>
+    <a href="#saved" onclick="switchProfileTab(event,'saved')">🤍 Saved</a>
+    <a href="#security" onclick="switchProfileTab(event,'security')">🔒 Security</a>
+  </nav>
+
+  <div class="profile-panel" id="m-panel-personal" style="margin-top:16px;">
+    <h3>Personal Information</h3>
+    <form method="POST" action="{% url 'update_profile' %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" name="first_name" value="{{ user.first_name }}" required>
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input type="text" name="last_name" value="{{ user.last_name }}" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="text" name="email" value="{{ user.email }}" required>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="text" name="phone" value="{{ user.phone }}">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-submit-wide" style="width:100%;">Save Changes</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- RESUME PANEL (mobile) -->
+  <div class="profile-panel" id="m-panel-resume" style="margin-top:16px;display:none;">
+    <h3>Resume</h3>
+    <form method="POST" action="{% url 'upload_resume' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="resume-upload-box">
+        <div class="upload-icon">📎</div>
+        {% if resume %}
+          <p>Current resume: <b>{{ resume.file.name }}</b><br><a href="{{ resume.file.url }}" target="_blank" style="color:var(--indigo-600);font-weight:600;">View Resume</a></p>
+        {% else %}
+          <p>No resume uploaded yet.</p>
+        {% endif %}
+        <input type="file" name="resume" accept=".pdf,.doc,.docx">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-submit-wide" style="width:100%;">Upload Resume</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- APPLICATIONS PANEL (mobile) -->
+  <div class="profile-panel" id="m-panel-applications" style="margin-top:16px;display:none;">
+    <h3>My Applications</h3>
+    {% if applications %}
+      {% for app in applications %}
+      <div class="applications-table-row">
+        <div class="app-info">
+          <div class="job-logo">{{ app.job.logo_emoji|default:"🟣" }}</div>
+          <div>
+            <h5>{{ app.job.title }}</h5>
+            <p>{{ app.job.company.name }} · Applied {{ app.applied_ago }}</p>
+          </div>
+        </div>
+        <span class="app-status-badge {{ app.status_class }}">{{ app.status }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="font-size:13.5px;color:var(--text-gray);">You haven't applied to any jobs yet. <a href="/jobs/" style="color:var(--indigo-600);font-weight:600;">Browse jobs →</a></p>
+    {% endif %}
+  </div>
+
+  <!-- SAVED JOBS PANEL (mobile) -->
+  <div class="profile-panel" id="m-panel-saved" style="margin-top:16px;display:none;">
+    <h3>Saved Jobs</h3>
+    {% if saved_jobs %}
+      {% for job in saved_jobs %}
+      <div class="applications-table-row">
+        <div class="app-info">
+          <div class="job-logo">{{ job.logo_emoji|default:"🟣" }}</div>
+          <div>
+            <h5>{{ job.title }}</h5>
+            <p>{{ job.company.name }} · {{ job.location }}</p>
+          </div>
+        </div>
+        <a href="/jobs/{{ job.id }}/" class="job-apply-btn">View</a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="font-size:13.5px;color:var(--text-gray);">No saved jobs yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- SECURITY PANEL (mobile) -->
+  <div class="profile-panel" id="m-panel-security" style="margin-top:16px;display:none;">
+    <h3>Change Password</h3>
+    <form method="POST" action="{% url 'change_password' %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Current Password</label>
+        <input type="password" name="current_password" required>
+      </div>
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" name="new_password" required>
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password</label>
+        <input type="password" name="confirm_password" required>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-submit-wide" style="width:100%;">Update Password</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  function switchProfileTab(e, tab){
+    e.preventDefault();
+    document.querySelectorAll('.profile-nav a').forEach(a => a.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    ['personal','resume','applications','saved','security'].forEach(t => {
+      var panel = document.getElementById('panel-' + t);
+      if(panel) panel.style.display = (t === tab) ? 'block' : 'none';
+      var mpanel = document.getElementById('m-panel-' + t);
+      if(mpanel) mpanel.style.display = (t === tab) ? 'block' : 'none';
+    });
+  }
+  function toggleUserMenu(id){
+    var menu = document.getElementById(id || 'userMenu');
+    menu.classList.toggle('open');
+    document.addEventListener('click', function closeMenu(ev){
+      if(!menu.contains(ev.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+</script>
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

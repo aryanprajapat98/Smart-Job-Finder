@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login / Sign Up - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-wrapper">
+
+    <div class="auth-logo">
+      <div class="logo-icon">💼</div>
+      <div class="logo-text">
+        <h1>Smart <span>Job Finder</span></h1>
+        <p>Find Better. Apply Smarter.</p>
+      </div>
+    </div>
+
+    <div class="login-card">
+
+      <div class="auth-tabs" id="auth-tabs">
+        <button type="button" class="active" id="tab-login" onclick="switchTab('login')">Login</button>
+        <button type="button" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+    
+      <body>
+        {% if messages %}
+         {% for message in messages %}
+          <div class="alert alert-danger" style = "color:red;">{{message}}</div>
+          {%endfor%}
+          {%endif%}
+      <!-- LOGIN FORM -->
+   <form class="auth-form active" id="form-login" method="POST" action="{% url 'login' %}">
+    {% csrf_token %}
+          <h3>Welcome Back! 👋</h3>
+        <p class="sub">Login to your account</p>
+
+        <div class="input-group">
+          <span class="input-icon">✉️</span>
+          <input type="text" name="identifier" placeholder="Email or Phone Number" required>
+        </div>
+
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input type="password" name="password" placeholder="Password" required>
+          <span class="toggle-eye">🙈</span>
+        </div>
+
+        <div class="login-row">
+          <label class="remember"><input type="checkbox" name="remember"> Remember me</label>
+          <a href="{% url 'forgot_password' %}" class="forgot">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="login-submit">Login</button>
+
+        <div class="divider">or</div>
+
+        <a href="{% url 'google_login' %}" class="google-btn" style="text-decoration:none;">🇬 Continue with Google</a>
+
+        <p class="signup-text">New here? <a href="#" onclick="switchTab('signup')">Create New Account</a></p>
+      </form>
+
+      <!-- SIGNUP FORM -->
+      <form class="auth-form" id="form-signup" method="POST" action="{% url 'signup' %}">
+        {% csrf_token %}
+        <h3>Create Account ✨</h3>
+        <p class="sub">Start your job search journey</p>
+
+        <div class="company-choice-toggle">
+          <label>
+            <input type="radio" name="user_type" value="seeker" checked>
+            <span>🔍 I'm looking for a job</span>
+          </label>
+          <label>
+            <input type="radio" name="user_type" value="employer">
+            <span>🏢 I'm hiring</span>
+          </label>
+        </div>
+
+        <div class="name-row">
+          <div class="input-group">
+            <span class="input-icon">👤</span>
+            <input type="text" name="first_name" placeholder="First Name" required>
+          </div>
+          <div class="input-group">
+            <span class="input-icon">👤</span>
+            <input type="text" name="last_name" placeholder="Last Name" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <span class="input-icon">✉️</span>
+          <input type="email" name="email" placeholder="Email Address" required>
+        </div>
+
+        <div class="input-group">
+          <span class="input-icon">📱</span>
+          <input type="tel" name="phone" placeholder="Phone Number" required>
+        </div>
+
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input type="password" name="password" placeholder="Password" required>
+          <span class="toggle-eye">🙈</span>
+        </div>
+
+        <div class="input-group">
+          <span class="input-icon">🔒</span>
+          <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+          <span class="toggle-eye">🙈</span>
+        </div>
+
+        <div class="login-row">
+          <label class="remember"><input type="checkbox" name="terms" required> I agree to Terms &amp; Privacy Policy</label>
+        </div>
+
+        <button type="submit" class="login-submit">Create Account</button>
+
+        <div class="divider">or</div>
+
+        <a href="{% url 'google_login' %}" class="google-btn" style="text-decoration:none;">🇬 Continue with Google</a>
+
+        <p class="signup-text">Already have an account? <a href="#" onclick="switchTab('login')">Login</a></p>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'script.js' %}"></script>
+<script>
+  function switchTab(tab){
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('form-login').classList.toggle('active', tab === 'login');
+    document.getElementById('form-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('auth-tabs').classList.toggle('signup-active', tab === 'signup');
+  }
+
+  // Agar URL mein ?tab=signup hai (jaise home page ke "Create New Account" link se aaye),
+  // to page load hote hi signup tab khol do
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    if(params.get('tab') === 'signup'){
+      switchTab('signup');
+    }
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Applicants for {{ job.title }} - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="profile-page">
+
+<!-- ============== DESKTOP VIEW ============== -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="/">Home</a>
+    <a href="/jobs/">Jobs</a>
+    <a href="/companies/">Companies</a>
+    <a href="/policy/" class='policy'>Private Policy</a>
+  </nav>
+
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-trigger" onclick="toggleUserMenu()">
+      <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+      <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+      <span class="caret">▼</span>
+    </div>
+    <div class="user-menu-dropdown">
+      <a href="/dashboard/">🏠 Dashboard</a>
+      <a href="/profile/">👤 My Profile</a>
+      <a href="/post-job/">➕ Post a Job</a>
+      <div class="divider-line"></div>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+      </form>
+    </div>
+  </div>
+</header>
+
+<section class="profile-hero desktop-only">
+  <p class="job-detail-breadcrumb" style="padding-left:2px;"><a href="/dashboard/">Dashboard</a> / Applicants</p>
+  <div class="profile-cover-card">
+    <div class="profile-avatar-lg">{{ job.logo_emoji }}</div>
+    <div class="profile-cover-text">
+      <h2>{{ job.title }}</h2>
+      <p>{{ job.company.name }} · {{ job.location }}</p>
+      <div class="profile-tags">
+        <span>👥 {{ applicants_count }} Applicant{{ applicants_count|pluralize }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-danger" style="color:red;max-width:1100px;margin:16px auto 0;padding:0 70px;">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<section class="companies-body desktop-only">
+  {% if applications %}
+    {% for app in applications %}
+    <div class="company-row" style="align-items:flex-start;margin-bottom:16px;">
+      <div class="company-row-logo">{{ app.user.first_name|slice:":1"|upper }}{{ app.user.last_name|slice:":1"|upper }}</div>
+      <div class="company-row-info">
+        <div class="company-row-top">
+          <h3>{{ app.user.first_name }} {{ app.user.last_name }}</h3>
+          <span class="app-status-badge {{ app.status_class }}">{{ app.get_status_display }}</span>
+        </div>
+        <p class="company-row-tagline">✉️ {{ app.user.email }} &nbsp;·&nbsp; 📱 {{ app.user.phone|default:"Not provided" }}</p>
+        <div class="company-row-meta">
+          <span class="company-row-meta-item">🕐 Applied {{ app.applied_ago }}</span>
+          {% if app.resume %}
+          <span class="company-row-meta-item">
+            <a href="{{ app.resume.file.url }}" target="_blank" style="color:var(--indigo-600);font-weight:600;">📎 View Resume</a>
+          </span>
+          {% else %}
+          <span class="company-row-meta-item" style="color:#9b98ad;">📎 No resume uploaded</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="company-row-right">
+        <form method="POST" action="{% url 'update_application_status' app.id %}">
+          {% csrf_token %}
+          <select name="status" onchange="this.form.submit()" style="border:1.5px solid #e6e4f1;border-radius:10px;padding:9px 14px;font-size:13.5px;font-family:inherit;color:#4b4b5a;background:#fff;outline:none;cursor:pointer;">
+            <option value="pending" {% if app.status == "pending" %}selected{% endif %}>Pending</option>
+            <option value="review" {% if app.status == "review" %}selected{% endif %}>In Review</option>
+            <option value="accepted" {% if app.status == "accepted" %}selected{% endif %}>Accepted</option>
+            <option value="rejected" {% if app.status == "rejected" %}selected{% endif %}>Rejected</option>
+          </select>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="dash-empty">No applicants yet for this job.</div>
+  {% endif %}
+</section>
+
+
+<!-- ============== MOBILE VIEW ============== -->
+<div class="mobile-only m-profile-page">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+    <a href="/dashboard/" style="font-size:20px;">←</a>
+    <h2 style="font-size:16px;font-weight:700;">Applicants</h2>
+  </div>
+
+  <div class="profile-cover-card">
+    <div class="profile-avatar-lg">{{ job.logo_emoji }}</div>
+    <div class="profile-cover-text">
+      <h2>{{ job.title }}</h2>
+      <p>{{ job.company.name }}</p>
+      <div class="profile-tags">
+        <span>👥 {{ applicants_count }} Applicant{{ applicants_count|pluralize }}</span>
+      </div>
+    </div>
+  </div>
+
+  {% for app in applications %}
+  <div class="applications-table-row" style="flex-direction:column;align-items:stretch;padding:16px 0;">
+    <div class="app-info" style="margin-bottom:10px;">
+      <div class="job-logo" style="border-radius:50%;">{{ app.user.first_name|slice:":1"|upper }}</div>
+      <div>
+        <h5>{{ app.user.first_name }} {{ app.user.last_name }}</h5>
+        <p>{{ app.user.email }}</p>
+      </div>
+    </div>
+    <p style="font-size:12.5px;color:var(--text-gray);margin-bottom:10px;">
+      📱 {{ app.user.phone|default:"N/A" }} · 🕐 {{ app.applied_ago }}
+      {% if app.resume %} · <a href="{{ app.resume.file.url }}" target="_blank" style="color:var(--indigo-600);font-weight:600;">📎 Resume</a>{% endif %}
+    </p>
+    <form method="POST" action="{% url 'update_application_status' app.id %}">
+      {% csrf_token %}
+      <select name="status" onchange="this.form.submit()" style="width:100%;border:1.5px solid #e6e4f1;border-radius:10px;padding:10px;font-size:13.5px;">
+        <option value="pending" {% if app.status == "pending" %}selected{% endif %}>Pending</option>
+        <option value="review" {% if app.status == "review" %}selected{% endif %}>In Review</option>
+        <option value="accepted" {% if app.status == "accepted" %}selected{% endif %}>Accepted</option>
+        <option value="rejected" {% if app.status == "rejected" %}selected{% endif %}>Rejected</option>
+      </select>
+    </form>
+  </div>
+  {% empty %}
+  <div class="dash-empty">No applicants yet.</div>
+  {% endfor %}
+
+</div>
+
+<script>
+  function toggleUserMenu(){
+    var menu = document.getElementById('userMenu');
+    menu.classList.toggle('open');
+    document.addEventListener('click', function closeMenu(e){
+      if(!menu.contains(e.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+</script>
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>

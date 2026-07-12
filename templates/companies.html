@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Companies - Smart Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="companies-page">
+
+<!-- ============== DESKTOP VIEW ============== -->
+
+<!-- NAVBAR -->
+<header class="navbar desktop-only">
+  <div class="logo">
+    <div class="logo-icon">💼</div>
+    <div class="logo-text">
+      <h1>Smart <span>Job Finder</span></h1>
+      <p>Find Better. Apply Smarter.</p>
+    </div>
+  </div>
+
+  <nav class="nav-links">
+    <a href="/">Home</a>
+    <a href="/jobs/">Jobs</a>
+    <a href="/companies/" class="active">Companies</a>
+    <a href="/policy/" class='policy'>Private Policy</a>
+  </nav>
+
+  {% if user %}
+  <div class="user-menu" id="userMenu">
+    <div class="user-menu-trigger" onclick="toggleUserMenu()">
+      <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+      <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+      <span class="caret">▼</span>
+    </div>
+    <div class="user-menu-dropdown">
+      <a href="/dashboard/">🏠 Dashboard</a>
+      <a href="/profile/">👤 My Profile</a>
+      <a href="/post-job/">➕ Post a Job</a>
+      <div class="divider-line"></div>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <a href="#" class="logout-link" onclick="this.closest('form').submit(); return false;">🚪 Logout</a>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <a href="/login/" class="login-btn">👤 Login / Sign Up</a>
+  {% endif %}
+</header>
+
+<!-- COMPANIES HERO -->
+<section class="companies-hero desktop-only">
+  <h2>Explore Top <span class="accent">Companies</span></h2>
+  <p>Discover verified companies actively hiring. No login needed to browse.</p>
+
+  <form class="companies-search-bar" method="GET" action="{% url 'companies' %}">
+    <div class="jobs-search-input">
+      <span class="ic">🔍</span>
+      <input type="text" name="q" value="{{ query }}" placeholder="Search companies by name or industry">
+    </div>
+    <button type="submit" class="jobs-filter-btn">🔎 Search</button>
+  </form>
+
+  <div class="companies-stats-row">
+    <div class="stat">
+      <div class="stat-icon blue">🏢</div>
+      <div>
+        <div class="stat-num">{{ companies_count }}</div>
+        <div class="stat-label">Companies</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPANIES BODY -->
+<section class="companies-body desktop-only">
+
+  <div class="companies-list-meta">
+    <span>Showing <b>{{ companies_count }}</b> companies</span>
+    <div class="jobs-sort">
+      <select>
+        <option>Most Relevant</option>
+        <option>Highest Rated</option>
+        <option>Most Open Jobs</option>
+      </select>
+    </div>
+  </div>
+
+  {% if companies %}
+  <div class="companies-list">
+    {% for company in companies %}
+    <div class="company-row">
+      <div class="company-row-logo">{{ company.logo_emoji }}</div>
+      <div class="company-row-info">
+        <div class="company-row-top">
+          <h3>{{ company.name }}</h3>
+          <span class="company-row-rating">⭐ {{ company.rating }}</span>
+        </div>
+        <p class="company-row-tagline">{{ company.tagline }}</p>
+        <div class="company-row-meta">
+          <span class="company-row-meta-item">🏷️ {{ company.industry }}</span>
+          <span class="company-row-meta-item">📍 {{ company.location }}</span>
+          <span class="company-row-meta-item">👥 {{ company.size }} employees</span>
+        </div>
+      </div>
+      <div class="company-row-right">
+        <span class="company-jobs-badge">{{ company.open_jobs_count }} Open Jobs</span>
+        <a href="/jobs/?q={{ company.name|urlencode }}" class="company-view-btn">View Jobs</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="dash-empty">No companies found yet.</div>
+  {% endif %}
+
+</section>
+
+
+<!-- ============== MOBILE VIEW ============== -->
+<div class="mobile-only m-companies-page">
+
+  <div class="m-companies-top">
+    <div class="logo">
+      <div class="logo-icon" style="width:36px;height:36px;font-size:15px;border-radius:9px;">💼</div>
+    </div>
+    <h2>Companies</h2>
+  </div>
+
+  <form class="m-companies-search" method="GET" action="{% url 'companies' %}">
+    <span class="ic">🔍</span>
+    <input type="text" name="q" value="{{ query }}" placeholder="Search companies...">
+  </form>
+
+  <p class="m-companies-count">Showing {{ companies_count }} companies</p>
+
+  {% for company in companies %}
+  <div class="m-company-card">
+    <div class="m-company-top-row">
+      <div class="m-company-logo">{{ company.logo_emoji }}</div>
+      <div class="m-company-info">
+        <h3>{{ company.name }}</h3>
+        <p class="tagline">{{ company.tagline }}</p>
+      </div>
+      <span class="m-company-rating">⭐ {{ company.rating }}</span>
+    </div>
+    <div class="m-company-meta">
+      <span class="m-company-meta-item">🏷️ {{ company.industry }}</span>
+      <span class="m-company-meta-item">📍 {{ company.location }}</span>
+      <span class="m-company-meta-item">👥 {{ company.size }}</span>
+    </div>
+    <div class="m-company-bottom">
+      <span class="m-company-jobs-badge">{{ company.open_jobs_count }} Open Jobs</span>
+      <a href="/jobs/?q={{ company.name|urlencode }}" class="m-company-view-btn">View</a>
+    </div>
+  </div>
+  {% empty %}
+  <div class="dash-empty">No companies found yet.</div>
+  {% endfor %}
+
+</div>
+
+<script>
+  function toggleUserMenu(){
+    var menu = document.getElementById('userMenu');
+    menu.classList.toggle('open');
+    document.addEventListener('click', function closeMenu(e){
+      if(!menu.contains(e.target)){
+        menu.classList.remove('open');
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }
+</script>
+<script src="{% static 'script.js' %}"></script>
+</body>
+</html>
